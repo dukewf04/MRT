@@ -70,7 +70,6 @@ var FormControlLabel = require('@mui/material/FormControlLabel');
 var Autocomplete = require('@mui/material/Autocomplete');
 var Chip = require('@mui/material/Chip');
 var InputAdornment = require('@mui/material/InputAdornment');
-var utils = require('@mui/material/utils');
 var DatePicker = require('@mui/x-date-pickers/DatePicker');
 var DateTimePicker = require('@mui/x-date-pickers/DateTimePicker');
 var TimePicker = require('@mui/x-date-pickers/TimePicker');
@@ -95,6 +94,7 @@ var PaginationItem = require('@mui/material/PaginationItem');
 var Select = require('@mui/material/Select');
 var Fade = require('@mui/material/Fade');
 var Switch = require('@mui/material/Switch');
+var utils = require('@mui/material/utils');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -2890,7 +2890,7 @@ const MRT_FilterCheckbox = (_a) => {
 const MRT_FilterTextField = (_a) => {
     var _b, _c, _d, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
     var { header, rangeFilterIndex, table } = _a, rest = __rest(_a, ["header", "rangeFilterIndex", "table"]);
-    const { options: { enableColumnFilterModes, icons: { CloseIcon, FilterListIcon }, localization, manualFiltering, muiFilterAutocompleteProps, muiFilterDatePickerProps, muiFilterDateTimePickerProps, muiFilterTextFieldProps, muiFilterTimePickerProps, }, refs: { filterInputRefs }, setColumnFilterFns, } = table;
+    const { options: { enableColumnFilterModes, icons: { CloseIcon, FilterListIcon }, localization, muiFilterAutocompleteProps, muiFilterDatePickerProps, muiFilterDateTimePickerProps, muiFilterTextFieldProps, muiFilterTimePickerProps, }, refs: { filterInputRefs }, setColumnFilterFns, } = table;
     const { column } = header;
     const { columnDef } = column;
     const { filterVariant } = columnDef;
@@ -2900,7 +2900,7 @@ const MRT_FilterTextField = (_a) => {
     const datePickerProps = Object.assign(Object.assign({}, parseFromValuesOrFunc(muiFilterDatePickerProps, args)), parseFromValuesOrFunc(columnDef.muiFilterDatePickerProps, args));
     const dateTimePickerProps = Object.assign(Object.assign({}, parseFromValuesOrFunc(muiFilterDateTimePickerProps, args)), parseFromValuesOrFunc(columnDef.muiFilterDateTimePickerProps, args));
     const timePickerProps = Object.assign(Object.assign({}, parseFromValuesOrFunc(muiFilterTimePickerProps, args)), parseFromValuesOrFunc(columnDef.muiFilterTimePickerProps, args));
-    const { allowedColumnFilterOptions, currentFilterOption, facetedUniqueValues, isAutocompleteFilter, isDateFilter, isMultiSelectFilter, isRangeFilter, isSelectFilter, isTextboxFilter, } = getColumnFilterInfo({ header, table });
+    const { allowedColumnFilterOptions, currentFilterOption, facetedUniqueValues, isAutocompleteFilter, isDateFilter, isMultiSelectFilter, isRangeFilter, isSelectFilter, } = getColumnFilterInfo({ header, table });
     const dropdownOptions = useDropdownOptions({ header, table });
     const filterChipLabel = ['empty', 'notEmpty'].includes(currentFilterOption)
         ? //@ts-ignore
@@ -2929,7 +2929,7 @@ const MRT_FilterTextField = (_a) => {
                 : (_b = column.getFilterValue()) !== null && _b !== void 0 ? _b : '';
     });
     const [autocompleteValue, setAutocompleteValue] = react.useState(isAutocompleteFilter ? filterValue : null);
-    const handleChangeDebounced = react.useCallback(utils.debounce((newValue) => {
+    const handleSetFilterValue = react.useCallback((newValue) => {
         if (isRangeFilter) {
             column.setFilterValue((old) => {
                 const newFilterValues = old !== null && old !== void 0 ? old : ['', ''];
@@ -2940,10 +2940,10 @@ const MRT_FilterTextField = (_a) => {
         else {
             column.setFilterValue(newValue !== null && newValue !== void 0 ? newValue : undefined);
         }
-    }, isTextboxFilter ? (manualFiltering ? 400 : 200) : 1), []);
+    }, []);
     const handleChange = (newValue) => {
         setFilterValue(newValue !== null && newValue !== void 0 ? newValue : '');
-        handleChangeDebounced(newValue);
+        handleSetFilterValue(newValue);
     };
     const handleTextFieldChange = (event) => {
         var _a;

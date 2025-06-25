@@ -15,7 +15,6 @@ import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
 import TextField, { type TextFieldProps } from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
-import { debounce } from '@mui/material/utils';
 import {
   DatePicker,
   type DatePickerProps,
@@ -59,7 +58,6 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
       enableColumnFilterModes,
       icons: { CloseIcon, FilterListIcon },
       localization,
-      manualFiltering,
       muiFilterAutocompleteProps,
       muiFilterDatePickerProps,
       muiFilterDateTimePickerProps,
@@ -110,7 +108,6 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
     isMultiSelectFilter,
     isRangeFilter,
     isSelectFilter,
-    isTextboxFilter,
   } = getColumnFilterInfo({ header, table });
 
   const dropdownOptions = useDropdownOptions({ header, table });
@@ -157,27 +154,24 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
       isAutocompleteFilter ? (filterValue as DropdownOption | null) : null,
     );
 
-  const handleChangeDebounced = useCallback(
-    debounce(
-      (newValue: any) => {
-        if (isRangeFilter) {
-          column.setFilterValue((old: Array<Date | null | number | string>) => {
-            const newFilterValues = old ?? ['', ''];
-            newFilterValues[rangeFilterIndex as number] = newValue ?? undefined;
-            return newFilterValues;
-          });
-        } else {
-          column.setFilterValue(newValue ?? undefined);
-        }
-      },
-      isTextboxFilter ? (manualFiltering ? 400 : 200) : 1,
-    ),
+  const handleSetFilterValue = useCallback(
+    (newValue: any) => {
+      if (isRangeFilter) {
+        column.setFilterValue((old: Array<Date | null | number | string>) => {
+          const newFilterValues = old ?? ['', ''];
+          newFilterValues[rangeFilterIndex as number] = newValue ?? undefined;
+          return newFilterValues;
+        });
+      } else {
+        column.setFilterValue(newValue ?? undefined);
+      }
+    },
     [],
   );
 
   const handleChange = (newValue: any) => {
     setFilterValue(newValue ?? '');
-    handleChangeDebounced(newValue);
+    handleSetFilterValue(newValue);
   };
 
   const handleTextFieldChange = (event: ChangeEvent<HTMLInputElement>) => {
