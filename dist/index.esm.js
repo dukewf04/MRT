@@ -1,5 +1,5 @@
 import { flexRender as flexRender$1, createRow as createRow$1, sortingFns, aggregationFns, filterFns, getCoreRowModel, getExpandedRowModel, getFacetedMinMaxValues, getFacetedRowModel, getFacetedUniqueValues, getFilteredRowModel, getGroupedRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
-import { useMemo, useState, useReducer, useRef, useEffect, useCallback, memo, Fragment as Fragment$1, useLayoutEffect } from 'react';
+import { useMemo, useState, useReducer, useRef, useEffect, useCallback, memo, startTransition, Fragment as Fragment$1, useLayoutEffect } from 'react';
 import { compareItems, rankItem, rankings } from '@tanstack/match-sorter-utils';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import IconButton from '@mui/material/IconButton';
@@ -90,7 +90,6 @@ import PaginationItem from '@mui/material/PaginationItem';
 import Select from '@mui/material/Select';
 import Fade from '@mui/material/Fade';
 import Switch from '@mui/material/Switch';
-import { debounce } from '@mui/material/utils';
 
 const getColumnId = (columnDef) => { var _a, _b, _c, _d; return (_d = (_a = columnDef.id) !== null && _a !== void 0 ? _a : (_c = (_b = columnDef.accessorKey) === null || _b === void 0 ? void 0 : _b.toString) === null || _c === void 0 ? void 0 : _c.call(_b)) !== null && _d !== void 0 ? _d : columnDef.header; };
 const getAllLeafColumnDefs = (columns) => {
@@ -2814,8 +2813,7 @@ const MRT_FilterTextField = (_a) => {
     const dropdownOptions = useDropdownOptions({ header, table });
     const filterChipLabel = ['empty', 'notEmpty'].includes(currentFilterOption)
         ? //@ts-ignore
-            localization[`filter${((_c = (_b = currentFilterOption === null || currentFilterOption === void 0 ? void 0 : currentFilterOption.charAt) === null || _b === void 0 ? void 0 : _b.call(currentFilterOption, 0)) === null || _c === void 0 ? void 0 : _c.toUpperCase()) +
-                (currentFilterOption === null || currentFilterOption === void 0 ? void 0 : currentFilterOption.slice(1))}`]
+            localization[`filter${((_c = (_b = currentFilterOption === null || currentFilterOption === void 0 ? void 0 : currentFilterOption.charAt) === null || _b === void 0 ? void 0 : _b.call(currentFilterOption, 0)) === null || _c === void 0 ? void 0 : _c.toUpperCase()) + (currentFilterOption === null || currentFilterOption === void 0 ? void 0 : currentFilterOption.slice(1))}`]
         : '';
     const filterPlaceholder = !isRangeFilter
         ? (_d = textFieldProps === null || textFieldProps === void 0 ? void 0 : textFieldProps.placeholder) !== null && _d !== void 0 ? _d : (_f = localization.filterByColumn) === null || _f === void 0 ? void 0 : _f.replace('{column}', String(columnDef.header))
@@ -2827,8 +2825,7 @@ const MRT_FilterTextField = (_a) => {
     const showChangeModeButton = !!(enableColumnFilterModes &&
         columnDef.enableColumnFilterModes !== false &&
         !rangeFilterIndex &&
-        (allowedColumnFilterOptions === undefined ||
-            !!(allowedColumnFilterOptions === null || allowedColumnFilterOptions === void 0 ? void 0 : allowedColumnFilterOptions.length)));
+        (allowedColumnFilterOptions === undefined || !!(allowedColumnFilterOptions === null || allowedColumnFilterOptions === void 0 ? void 0 : allowedColumnFilterOptions.length)));
     const [anchorEl, setAnchorEl] = useState(null);
     const [filterValue, setFilterValue] = useState(() => {
         var _a, _b;
@@ -2845,6 +2842,13 @@ const MRT_FilterTextField = (_a) => {
                 const newFilterValues = old !== null && old !== void 0 ? old : ['', ''];
                 newFilterValues[rangeFilterIndex] = newValue !== null && newValue !== void 0 ? newValue : undefined;
                 return newFilterValues;
+            });
+        }
+        else if (isMultiSelectFilter || isSelectFilter) {
+            // Изменение состояний фильтров "select" и "multi-select" помечаем, как несрочное,
+            // чтобы не было задержек при выборе элементов
+            startTransition(() => {
+                column.setFilterValue(newValue !== null && newValue !== void 0 ? newValue : undefined);
             });
         }
         else {
@@ -2915,14 +2919,14 @@ const MRT_FilterTextField = (_a) => {
         isMounted.current = true;
     }, [column.getFilterValue()]);
     if (columnDef.Filter) {
-        return (jsx(Fragment, { children: (_g = columnDef.Filter) === null || _g === void 0 ? void 0 : _g.call(columnDef, { column, header, rangeFilterIndex, table }) }));
+        return jsx(Fragment, { children: (_g = columnDef.Filter) === null || _g === void 0 ? void 0 : _g.call(columnDef, { column, header, rangeFilterIndex, table }) });
     }
     const endAdornment = !isAutocompleteFilter && !isDateFilter && !filterChipLabel ? (jsx(InputAdornment, { position: "end", sx: { mr: isSelectFilter || isMultiSelectFilter ? '20px' : undefined }, children: jsx(Tooltip, { placement: "right", title: (_h = localization.clearFilter) !== null && _h !== void 0 ? _h : '', children: jsx("span", { children: jsx(IconButton, { "aria-label": localization.clearFilter, disabled: !((_j = filterValue === null || filterValue === void 0 ? void 0 : filterValue.toString()) === null || _j === void 0 ? void 0 : _j.length), onClick: handleClear, size: "small", sx: {
                         height: '2rem',
                         transform: 'scale(0.9)',
                         width: '2rem',
                     }, children: jsx(CloseIcon, {}) }) }) }) })) : null;
-    const startAdornment = showChangeModeButton ? (jsxs(InputAdornment, { position: "start", children: [jsx(Tooltip, { title: localization.changeFilterMode, children: jsx("span", { children: jsx(IconButton, { "aria-label": localization.changeFilterMode, onClick: handleFilterMenuOpen, size: "small", sx: { height: '1.75rem', width: '1.75rem' }, children: jsx(FilterListIcon, {}) }) }) }), filterChipLabel && (jsx(Chip, { label: filterChipLabel, onDelete: handleClearEmptyFilterChip }))] })) : null;
+    const startAdornment = showChangeModeButton ? (jsxs(InputAdornment, { position: "start", children: [jsx(Tooltip, { title: localization.changeFilterMode, children: jsx("span", { children: jsx(IconButton, { "aria-label": localization.changeFilterMode, onClick: handleFilterMenuOpen, size: "small", sx: { height: '1.75rem', width: '1.75rem' }, children: jsx(FilterListIcon, {}) }) }) }), filterChipLabel && jsx(Chip, { label: filterChipLabel, onDelete: handleClearEmptyFilterChip })] })) : null;
     const commonTextFieldProps = Object.assign(Object.assign({ FormHelperTextProps: {
             sx: {
                 fontSize: '0.75rem',
@@ -2933,8 +2937,7 @@ const MRT_FilterTextField = (_a) => {
             ? { endAdornment, startAdornment }
             : { startAdornment }, fullWidth: true, helperText: showChangeModeButton ? (jsx("label", { children: localization.filterMode.replace('{filterType}', 
             // @ts-ignore
-            localization[`filter${((_k = currentFilterOption === null || currentFilterOption === void 0 ? void 0 : currentFilterOption.charAt(0)) === null || _k === void 0 ? void 0 : _k.toUpperCase()) +
-                (currentFilterOption === null || currentFilterOption === void 0 ? void 0 : currentFilterOption.slice(1))}`]) })) : null, inputProps: {
+            localization[`filter${((_k = currentFilterOption === null || currentFilterOption === void 0 ? void 0 : currentFilterOption.charAt(0)) === null || _k === void 0 ? void 0 : _k.toUpperCase()) + (currentFilterOption === null || currentFilterOption === void 0 ? void 0 : currentFilterOption.slice(1))}`]) })) : null, inputProps: {
             'aria-label': filterPlaceholder,
             autoComplete: 'new-password', // disable autocomplete and autofill
             disabled: !!filterChipLabel,
@@ -2944,14 +2947,11 @@ const MRT_FilterTextField = (_a) => {
             },
             title: filterPlaceholder,
         }, inputRef: (inputRef) => {
-            filterInputRefs.current[`${column.id}-${rangeFilterIndex !== null && rangeFilterIndex !== void 0 ? rangeFilterIndex : 0}`] =
-                inputRef;
+            filterInputRefs.current[`${column.id}-${rangeFilterIndex !== null && rangeFilterIndex !== void 0 ? rangeFilterIndex : 0}`] = inputRef;
             if (textFieldProps.inputRef) {
                 textFieldProps.inputRef = inputRef;
             }
-        }, margin: 'none', placeholder: filterChipLabel || isSelectFilter || isMultiSelectFilter
-            ? undefined
-            : filterPlaceholder, variant: 'standard' }, textFieldProps), { sx: (theme) => (Object.assign({ minWidth: isDateFilter
+        }, margin: 'none', placeholder: filterChipLabel || isSelectFilter || isMultiSelectFilter ? undefined : filterPlaceholder, variant: 'standard' }, textFieldProps), { sx: (theme) => (Object.assign({ minWidth: isDateFilter
                 ? '160px'
                 : enableColumnFilterModes && rangeFilterIndex === 0
                     ? '110px'
@@ -2981,7 +2981,7 @@ const MRT_FilterTextField = (_a) => {
                 }, value: autocompleteValue }))) : (jsx(TextField, Object.assign({ select: isSelectFilter || isMultiSelectFilter }, commonTextFieldProps, { SelectProps: Object.assign({ MenuProps: { disableScrollLock: true }, displayEmpty: true, multiple: isMultiSelectFilter, renderValue: isMultiSelectFilter
                         ? (selected) => !(selected === null || selected === void 0 ? void 0 : selected.length) ? (jsx(Box, { sx: { opacity: 0.5 }, children: filterPlaceholder })) : (jsx(Box, { sx: { display: 'flex', flexWrap: 'wrap', gap: '2px' }, children: selected === null || selected === void 0 ? void 0 : selected.map((value) => {
                                 const selectedValue = dropdownOptions === null || dropdownOptions === void 0 ? void 0 : dropdownOptions.find((option) => getValueAndLabel(option).value === value);
-                                return (jsx(Chip, { label: getValueAndLabel(selectedValue).label }, value));
+                                return jsx(Chip, { label: getValueAndLabel(selectedValue).label }, value);
                             }) }))
                         : undefined }, commonTextFieldProps.SelectProps), onChange: handleTextFieldChange, onClick: (e) => e.stopPropagation(), value: filterValue !== null && filterValue !== void 0 ? filterValue : '', children: (isSelectFilter || isMultiSelectFilter) && [
                     jsx(MenuItem, { disabled: true, divider: true, hidden: true, value: "", children: jsx(Box, { sx: { opacity: 0.5 }, children: filterPlaceholder }) }, "p"),
@@ -2994,8 +2994,7 @@ const MRT_FilterTextField = (_a) => {
                                     display: 'flex',
                                     gap: '0.5rem',
                                     m: 0,
-                                }, value: value, children: [isMultiSelectFilter && (jsx(Checkbox, { checked: ((_a = column.getFilterValue()) !== null && _a !== void 0 ? _a : []).includes(value), sx: { mr: '0.5rem' } })), label, ' ', !columnDef.filterSelectOptions &&
-                                        `(${facetedUniqueValues.get(value)})`] }, `${index}-${value}`));
+                                }, value: value, children: [isMultiSelectFilter && (jsx(Checkbox, { checked: ((_a = column.getFilterValue()) !== null && _a !== void 0 ? _a : []).includes(value), sx: { mr: '0.5rem' } })), label, ' ', !columnDef.filterSelectOptions && `(${facetedUniqueValues.get(value)})`] }, `${index}-${value}`));
                         }),
                     ],
                 ] }))), jsx(MRT_FilterOptionMenu, { anchorEl: anchorEl, header: header, setAnchorEl: setAnchorEl, setFilterValue: setFilterValue, table: table })] }));
@@ -3998,7 +3997,7 @@ const MRT_ToolbarInternalButtons = (_a) => {
 const MRT_GlobalFilterTextField = (_a) => {
     var _b;
     var { table } = _a, rest = __rest(_a, ["table"]);
-    const { getState, options: { enableGlobalFilterModes, icons: { CloseIcon, SearchIcon }, localization, manualFiltering, muiSearchTextFieldProps, }, refs: { searchInputRef }, setGlobalFilter, } = table;
+    const { getState, options: { enableGlobalFilterModes, icons: { CloseIcon, SearchIcon }, localization, muiSearchTextFieldProps, }, refs: { searchInputRef }, setGlobalFilter, } = table;
     const { globalFilter, showGlobalFilter } = getState();
     const textFieldProps = Object.assign(Object.assign({}, parseFromValuesOrFunc(muiSearchTextFieldProps, {
         table,
@@ -4006,13 +4005,13 @@ const MRT_GlobalFilterTextField = (_a) => {
     const isMounted = useRef(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const [searchValue, setSearchValue] = useState(globalFilter !== null && globalFilter !== void 0 ? globalFilter : '');
-    const handleChangeDebounced = useCallback(debounce((event) => {
+    const handleSetGlobalFilter = useCallback((event) => {
         var _a;
         setGlobalFilter((_a = event.target.value) !== null && _a !== void 0 ? _a : undefined);
-    }, manualFiltering ? 500 : 250), []);
+    }, []);
     const handleChange = (event) => {
         setSearchValue(event.target.value);
-        handleChangeDebounced(event);
+        handleSetGlobalFilter(event);
     };
     const handleGlobalFilterMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);

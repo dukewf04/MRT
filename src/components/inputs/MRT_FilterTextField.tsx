@@ -1,6 +1,7 @@
 import {
   type ChangeEvent,
   type MouseEvent,
+  startTransition,
   useCallback,
   useEffect,
   useRef,
@@ -15,28 +16,16 @@ import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
 import TextField, { type TextFieldProps } from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
-import {
-  DatePicker,
-  type DatePickerProps,
-} from '@mui/x-date-pickers/DatePicker';
-import {
-  DateTimePicker,
-  type DateTimePickerProps,
-} from '@mui/x-date-pickers/DateTimePicker';
-import {
-  TimePicker,
-  type TimePickerProps,
-} from '@mui/x-date-pickers/TimePicker';
+import { DatePicker, type DatePickerProps } from '@mui/x-date-pickers/DatePicker';
+import { DateTimePicker, type DateTimePickerProps } from '@mui/x-date-pickers/DateTimePicker';
+import { TimePicker, type TimePickerProps } from '@mui/x-date-pickers/TimePicker';
 import {
   type DropdownOption,
   type MRT_Header,
   type MRT_RowData,
   type MRT_TableInstance,
 } from '../../types';
-import {
-  getColumnFilterInfo,
-  useDropdownOptions,
-} from '../../utils/column.utils';
+import { getColumnFilterInfo, useDropdownOptions } from '../../utils/column.utils';
 import { getValueAndLabel, parseFromValuesOrFunc } from '../../utils/utils';
 import { MRT_FilterOptionMenu } from '../menus/MRT_FilterOptionMenu';
 
@@ -115,10 +104,7 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
   const filterChipLabel = ['empty', 'notEmpty'].includes(currentFilterOption)
     ? //@ts-ignore
       localization[
-        `filter${
-          currentFilterOption?.charAt?.(0)?.toUpperCase() +
-          currentFilterOption?.slice(1)
-        }`
+        `filter${currentFilterOption?.charAt?.(0)?.toUpperCase() + currentFilterOption?.slice(1)}`
       ]
     : '';
 
@@ -126,17 +112,16 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
     ? textFieldProps?.placeholder ??
       localization.filterByColumn?.replace('{column}', String(columnDef.header))
     : rangeFilterIndex === 0
-      ? localization.min
-      : rangeFilterIndex === 1
-        ? localization.max
-        : '';
+    ? localization.min
+    : rangeFilterIndex === 1
+    ? localization.max
+    : '';
 
   const showChangeModeButton = !!(
     enableColumnFilterModes &&
     columnDef.enableColumnFilterModes !== false &&
     !rangeFilterIndex &&
-    (allowedColumnFilterOptions === undefined ||
-      !!allowedColumnFilterOptions?.length)
+    (allowedColumnFilterOptions === undefined || !!allowedColumnFilterOptions?.length)
   );
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -144,30 +129,30 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
     isMultiSelectFilter
       ? (column.getFilterValue() as string[]) || []
       : isRangeFilter
-        ? (column.getFilterValue() as [string, string])?.[
-            rangeFilterIndex as number
-          ] || ''
-        : (column.getFilterValue() as string) ?? '',
+      ? (column.getFilterValue() as [string, string])?.[rangeFilterIndex as number] || ''
+      : (column.getFilterValue() as string) ?? '',
   );
-  const [autocompleteValue, setAutocompleteValue] =
-    useState<DropdownOption | null>(
-      isAutocompleteFilter ? (filterValue as DropdownOption | null) : null,
-    );
+  const [autocompleteValue, setAutocompleteValue] = useState<DropdownOption | null>(
+    isAutocompleteFilter ? (filterValue as DropdownOption | null) : null,
+  );
 
-  const handleSetFilterValue = useCallback(
-    (newValue: any) => {
-      if (isRangeFilter) {
-        column.setFilterValue((old: Array<Date | null | number | string>) => {
-          const newFilterValues = old ?? ['', ''];
-          newFilterValues[rangeFilterIndex as number] = newValue ?? undefined;
-          return newFilterValues;
-        });
-      } else {
+  const handleSetFilterValue = useCallback((newValue: any) => {
+    if (isRangeFilter) {
+      column.setFilterValue((old: Array<Date | null | number | string>) => {
+        const newFilterValues = old ?? ['', ''];
+        newFilterValues[rangeFilterIndex as number] = newValue ?? undefined;
+        return newFilterValues;
+      });
+    } else if (isMultiSelectFilter || isSelectFilter) {
+      // Изменение состояний фильтров "select" и "multi-select" помечаем, как несрочное,
+      // чтобы не было задержек при выборе элементов
+      startTransition(() => {
         column.setFilterValue(newValue ?? undefined);
-      }
-    },
-    [],
-  );
+      });
+    } else {
+      column.setFilterValue(newValue ?? undefined);
+    }
+  }, []);
 
   const handleChange = (newValue: any) => {
     setFilterValue(newValue ?? '');
@@ -179,8 +164,8 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
       textFieldProps.type === 'date'
         ? event.target.valueAsDate
         : textFieldProps.type === 'number'
-          ? event.target.valueAsNumber
-          : event.target.value;
+        ? event.target.valueAsNumber
+        : event.target.value;
     handleChange(newValue);
     textFieldProps?.onChange?.(event);
   };
@@ -237,9 +222,7 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
   }, [column.getFilterValue()]);
 
   if (columnDef.Filter) {
-    return (
-      <>{columnDef.Filter?.({ column, header, rangeFilterIndex, table })}</>
-    );
+    return <>{columnDef.Filter?.({ column, header, rangeFilterIndex, table })}</>;
   }
 
   const endAdornment =
@@ -282,9 +265,7 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
           </IconButton>
         </span>
       </Tooltip>
-      {filterChipLabel && (
-        <Chip label={filterChipLabel} onDelete={handleClearEmptyFilterChip} />
-      )}
+      {filterChipLabel && <Chip label={filterChipLabel} onDelete={handleClearEmptyFilterChip} />}
     </InputAdornment>
   ) : null;
 
@@ -306,10 +287,7 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
           '{filterType}',
           // @ts-ignore
           localization[
-            `filter${
-              currentFilterOption?.charAt(0)?.toUpperCase() +
-              currentFilterOption?.slice(1)
-            }`
+            `filter${currentFilterOption?.charAt(0)?.toUpperCase() + currentFilterOption?.slice(1)}`
           ],
         )}
       </label>
@@ -325,29 +303,26 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
       title: filterPlaceholder,
     },
     inputRef: (inputRef) => {
-      filterInputRefs.current[`${column.id}-${rangeFilterIndex ?? 0}`] =
-        inputRef;
+      filterInputRefs.current[`${column.id}-${rangeFilterIndex ?? 0}`] = inputRef;
       if (textFieldProps.inputRef) {
         textFieldProps.inputRef = inputRef;
       }
     },
     margin: 'none',
     placeholder:
-      filterChipLabel || isSelectFilter || isMultiSelectFilter
-        ? undefined
-        : filterPlaceholder,
+      filterChipLabel || isSelectFilter || isMultiSelectFilter ? undefined : filterPlaceholder,
     variant: 'standard',
     ...textFieldProps,
     sx: (theme) => ({
       minWidth: isDateFilter
         ? '160px'
         : enableColumnFilterModes && rangeFilterIndex === 0
-          ? '110px'
-          : isRangeFilter
-            ? '100px'
-            : !filterChipLabel
-              ? '120px'
-              : 'auto',
+        ? '110px'
+        : isRangeFilter
+        ? '100px'
+        : !filterChipLabel
+        ? '120px'
+        : 'auto',
       mx: '-2px',
       p: 0,
       width: 'calc(100% + 4px)',
@@ -415,15 +390,9 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
       ) : isAutocompleteFilter ? (
         <Autocomplete
           freeSolo
-          getOptionLabel={(option: DropdownOption) =>
-            getValueAndLabel(option).label
-          }
-          onChange={(_e, newValue: DropdownOption) =>
-            handleAutocompleteChange(newValue)
-          }
-          options={
-            dropdownOptions?.map((option) => getValueAndLabel(option)) ?? []
-          }
+          getOptionLabel={(option: DropdownOption) => getValueAndLabel(option).label}
+          onChange={(_e, newValue: DropdownOption) => handleAutocompleteChange(newValue)}
+          options={dropdownOptions?.map((option) => getValueAndLabel(option)) ?? []}
           {...autocompleteProps}
           renderInput={(builtinTextFieldProps) => (
             <TextField
@@ -431,8 +400,7 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
               {...commonTextFieldProps}
               InputProps={{
                 ...builtinTextFieldProps.InputProps,
-                startAdornment:
-                  commonTextFieldProps?.InputProps?.startAdornment,
+                startAdornment: commonTextFieldProps?.InputProps?.startAdornment,
               }}
               inputProps={{
                 ...builtinTextFieldProps.inputProps,
@@ -462,12 +430,7 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
                         const selectedValue = dropdownOptions?.find(
                           (option) => getValueAndLabel(option).value === value,
                         );
-                        return (
-                          <Chip
-                            key={value}
-                            label={getValueAndLabel(selectedValue).label}
-                          />
-                        );
+                        return <Chip key={value} label={getValueAndLabel(selectedValue).label} />;
                       })}
                     </Box>
                   )
@@ -499,15 +462,12 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
                     >
                       {isMultiSelectFilter && (
                         <Checkbox
-                          checked={(
-                            (column.getFilterValue() ?? []) as string[]
-                          ).includes(value)}
+                          checked={((column.getFilterValue() ?? []) as string[]).includes(value)}
                           sx={{ mr: '0.5rem' }}
                         />
                       )}
                       {label}{' '}
-                      {!columnDef.filterSelectOptions &&
-                        `(${facetedUniqueValues.get(value)})`}
+                      {!columnDef.filterSelectOptions && `(${facetedUniqueValues.get(value)})`}
                     </MenuItem>
                   );
                 }),

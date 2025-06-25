@@ -1,17 +1,9 @@
-import {
-  type ChangeEvent,
-  type MouseEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type ChangeEvent, type MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import TextField, { type TextFieldProps } from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
-import { debounce } from '@mui/material/utils';
 import { type MRT_RowData, type MRT_TableInstance } from '../../types';
 import { parseFromValuesOrFunc } from '../../utils/utils';
 import { MRT_FilterOptionMenu } from '../menus/MRT_FilterOptionMenu';
@@ -31,7 +23,6 @@ export const MRT_GlobalFilterTextField = <TData extends MRT_RowData>({
       enableGlobalFilterModes,
       icons: { CloseIcon, SearchIcon },
       localization,
-      manualFiltering,
       muiSearchTextFieldProps,
     },
     refs: { searchInputRef },
@@ -50,19 +41,13 @@ export const MRT_GlobalFilterTextField = <TData extends MRT_RowData>({
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [searchValue, setSearchValue] = useState(globalFilter ?? '');
 
-  const handleChangeDebounced = useCallback(
-    debounce(
-      (event: ChangeEvent<HTMLInputElement>) => {
-        setGlobalFilter(event.target.value ?? undefined);
-      },
-      manualFiltering ? 500 : 250,
-    ),
-    [],
-  );
+  const handleSetGlobalFilter = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setGlobalFilter(event.target.value ?? undefined);
+  }, []);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchValue(event.target.value);
-    handleChangeDebounced(event);
+    handleSetGlobalFilter(event);
   };
 
   const handleGlobalFilterMenuOpen = (event: MouseEvent<HTMLElement>) => {
@@ -86,12 +71,7 @@ export const MRT_GlobalFilterTextField = <TData extends MRT_RowData>({
   }, [globalFilter]);
 
   return (
-    <Collapse
-      in={showGlobalFilter}
-      mountOnEnter
-      orientation="horizontal"
-      unmountOnExit
-    >
+    <Collapse in={showGlobalFilter} mountOnEnter orientation="horizontal" unmountOnExit>
       <TextField
         inputProps={{
           autoComplete: 'new-password', // disable autocomplete and autofill
@@ -139,10 +119,7 @@ export const MRT_GlobalFilterTextField = <TData extends MRT_RowData>({
           ...textFieldProps.InputProps,
           sx: (theme) => ({
             mb: 0,
-            ...(parseFromValuesOrFunc(
-              textFieldProps?.InputProps?.sx,
-              theme,
-            ) as any),
+            ...(parseFromValuesOrFunc(textFieldProps?.InputProps?.sx, theme) as any),
           }),
         }}
         inputRef={(inputRef) => {
