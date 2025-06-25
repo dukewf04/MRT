@@ -2893,6 +2893,7 @@ const MRT_FilterTextField = (_a) => {
     const { column } = header;
     const { columnDef } = column;
     const { filterVariant } = columnDef;
+    const [isPending, startTransition] = react.useTransition();
     const args = { column, rangeFilterIndex, table };
     const textFieldProps = Object.assign(Object.assign(Object.assign({}, parseFromValuesOrFunc(muiFilterTextFieldProps, args)), parseFromValuesOrFunc(columnDef.muiFilterTextFieldProps, args)), rest);
     const autocompleteProps = Object.assign(Object.assign({}, parseFromValuesOrFunc(muiFilterAutocompleteProps, args)), parseFromValuesOrFunc(columnDef.muiFilterAutocompleteProps, args));
@@ -2937,14 +2938,12 @@ const MRT_FilterTextField = (_a) => {
         else if (isMultiSelectFilter || isSelectFilter) {
             // Изменение состояний фильтров "select" и "multi-select" помечаем, как несрочное,
             // чтобы не было задержек при выборе элементов
-            react.startTransition(() => {
+            startTransition(() => {
                 column.setFilterValue(newValue !== null && newValue !== void 0 ? newValue : undefined);
             });
-            console.log("Обновление фильтров isMultiSelectFilter || isSelectFilter");
         }
         else {
             column.setFilterValue(newValue !== null && newValue !== void 0 ? newValue : undefined);
-            console.log("Обновление остальных фильтров");
         }
     }, []);
     const handleChange = (newValue) => {

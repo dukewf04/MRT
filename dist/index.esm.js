@@ -1,5 +1,5 @@
 import { flexRender as flexRender$1, createRow as createRow$1, sortingFns, aggregationFns, filterFns, getCoreRowModel, getExpandedRowModel, getFacetedMinMaxValues, getFacetedRowModel, getFacetedUniqueValues, getFilteredRowModel, getGroupedRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
-import { useMemo, useState, useReducer, useRef, useEffect, useCallback, memo, startTransition, Fragment as Fragment$1, useLayoutEffect } from 'react';
+import { useMemo, useState, useReducer, useRef, useEffect, useCallback, memo, useTransition, Fragment as Fragment$1, useLayoutEffect } from 'react';
 import { compareItems, rankItem, rankings } from '@tanstack/match-sorter-utils';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import IconButton from '@mui/material/IconButton';
@@ -2803,6 +2803,7 @@ const MRT_FilterTextField = (_a) => {
     const { column } = header;
     const { columnDef } = column;
     const { filterVariant } = columnDef;
+    const [isPending, startTransition] = useTransition();
     const args = { column, rangeFilterIndex, table };
     const textFieldProps = Object.assign(Object.assign(Object.assign({}, parseFromValuesOrFunc(muiFilterTextFieldProps, args)), parseFromValuesOrFunc(columnDef.muiFilterTextFieldProps, args)), rest);
     const autocompleteProps = Object.assign(Object.assign({}, parseFromValuesOrFunc(muiFilterAutocompleteProps, args)), parseFromValuesOrFunc(columnDef.muiFilterAutocompleteProps, args));
@@ -2850,11 +2851,9 @@ const MRT_FilterTextField = (_a) => {
             startTransition(() => {
                 column.setFilterValue(newValue !== null && newValue !== void 0 ? newValue : undefined);
             });
-            console.log("Обновление фильтров isMultiSelectFilter || isSelectFilter");
         }
         else {
             column.setFilterValue(newValue !== null && newValue !== void 0 ? newValue : undefined);
-            console.log("Обновление остальных фильтров");
         }
     }, []);
     const handleChange = (newValue) => {

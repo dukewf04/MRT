@@ -1,11 +1,11 @@
 import {
   type ChangeEvent,
   type MouseEvent,
-  startTransition,
   useCallback,
   useEffect,
   useRef,
   useState,
+  useTransition,
 } from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
@@ -59,6 +59,8 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
   const { column } = header;
   const { columnDef } = column;
   const { filterVariant } = columnDef;
+
+  const [isPending, startTransition] = useTransition();
 
   const args = { column, rangeFilterIndex, table };
 
@@ -149,10 +151,8 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
       startTransition(() => {
         column.setFilterValue(newValue ?? undefined);
       });
-      console.log("Обновление фильтров isMultiSelectFilter || isSelectFilter")
     } else {
       column.setFilterValue(newValue ?? undefined);
-      console.log("Обновление остальных фильтров")
     }
   }, []);
 
