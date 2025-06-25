@@ -149,8 +149,10 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
       startTransition(() => {
         column.setFilterValue(newValue ?? undefined);
       });
+      console.log("Обновление фильтров isMultiSelectFilter || isSelectFilter")
     } else {
       column.setFilterValue(newValue ?? undefined);
+      console.log("Обновление остальных фильтров")
     }
   }, []);
 

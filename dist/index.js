@@ -2940,9 +2940,11 @@ const MRT_FilterTextField = (_a) => {
             react.startTransition(() => {
                 column.setFilterValue(newValue !== null && newValue !== void 0 ? newValue : undefined);
             });
+            console.log("Обновление фильтров isMultiSelectFilter || isSelectFilter");
         }
         else {
             column.setFilterValue(newValue !== null && newValue !== void 0 ? newValue : undefined);
+            console.log("Обновление остальных фильтров");
         }
     }, []);
     const handleChange = (newValue) => {
