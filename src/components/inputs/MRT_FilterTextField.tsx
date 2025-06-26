@@ -148,9 +148,9 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
     } else if (isMultiSelectFilter || isSelectFilter) {
       // Изменение состояний фильтров "select" и "multi-select" помечаем, как несрочное,
       // чтобы не было задержек при выборе элементов
-      startTransition(() => {
-        column.setFilterValue(newValue ?? undefined);
-      });
+      // startTransition(() => {
+      //   column.setFilterValue(newValue ?? undefined);
+      // });
     } else {
       column.setFilterValue(newValue ?? undefined);
     }
