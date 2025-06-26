@@ -2851,7 +2851,7 @@ const MRT_FilterTextField = (_a) => {
         }
     }, []);
     const handleChange = (newValue) => {
-        setFilterValue(newValue !== null && newValue !== void 0 ? newValue : '');
+        // setFilterValue(newValue ?? '');
         handleSetFilterValue(newValue);
     };
     const handleTextFieldChange = (event) => {

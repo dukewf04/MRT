@@ -157,7 +157,7 @@ export const MRT_FilterTextField = <TData extends MRT_RowData>({
   }, []);
 
   const handleChange = (newValue: any) => {
-    setFilterValue(newValue ?? '');
+    // setFilterValue(newValue ?? '');
     handleSetFilterValue(newValue);
   };
 
